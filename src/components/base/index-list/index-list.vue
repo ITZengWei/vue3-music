@@ -1,5 +1,6 @@
 <template>
   <scroll
+    ref="scrollRef"
     class="index-list"
     :probe-type="3"
     @scroll="onScroll"
@@ -26,12 +27,32 @@
     <div class="fixed" v-show="fixedTitle" :style="fixedStyle">
       <div class="fixed-title">{{fixedTitle}}</div>
     </div>
+
+    <!-- 快速导航 -->
+    <div
+      class="shortcut"
+      @touchstart.stop.prevent="onShortcutTouchStart"
+      @touchmove.stop.prevent="onShortcutTouchMove"
+      @touchend.stop.prevent=""
+    >
+      <ul>
+        <li
+          v-for="(item, index) in shortcutList"
+          :key="item"
+          :data-index="index"
+          class="item"
+          :class="{'current':currentIndex===index}">
+          {{item}}
+        </li>
+      </ul>
+    </div>
   </scroll>
 </template>
 
 <script>
   import Scroll from '@/components/base/scroll/scroll'
   import useFixed from './use-fixed'
+  import useShortcut from "./use-shortcut"
 
   export default {
     name: 'index-list',
@@ -47,11 +68,17 @@
     setup(props) {
       const { groupRef, onScroll, fixedTitle, fixedStyle } = useFixed(props)
 
+      const { scrollRef, shortcutList, onShortcutTouchStart, onShortcutTouchMove } = useShortcut(props, groupRef)
+
       return {
+        scrollRef,
         groupRef,
         onScroll,
         fixedTitle,
-        fixedStyle
+        fixedStyle,
+        shortcutList,
+        onShortcutTouchStart,
+        onShortcutTouchMove
       }
     }
   }
