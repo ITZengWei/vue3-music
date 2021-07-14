@@ -20,30 +20,69 @@
           <h1 class="title">{{currentSong.name}}</h1>
           <h2 class="subtitle">{{currentSong.singer}}</h2>
         </div>
+        <div class="bottom">
+          <div class="operators">
+            <div class="icon i-left">
+              <!--<i class="icon-sequence"></i>-->
+              <i :class="modeIcon" @click="changeMode"></i>
+            </div>
+            <div class="icon i-left" :class="disableCls">
+              <i  class="icon-prev" @click="prev"></i>
+            </div>
+            <div class="icon i-center" :class="disableCls">
+              <i :class="playIcon" @click="togglePlay"></i>
+            </div>
+            <div class="icon i-right" :class="disableCls">
+              <i class="icon-next" @click="next"></i>
+            </div>
+            <div class="icon i-right">
+              <i :class="getFavoriteIcon(currentSong)" @click="toggleFavorite(currentSong)"></i>
+            </div>
+          </div>
+        </div>
       </template>
     </div>
-    <audio ref="audioRef"></audio>
+    <audio ref="audioRef" @pause="pause" @canplay="ready" @error="error"></audio>
   </div>
 </template>
 
 <script>
   import { computed, watch, ref } from 'vue'
   import { useStore } from 'vuex'
+  import useMode from "./use-mode"
+  import useFavorite from "./use-favorite"
 
   export default {
     name: 'player',
     setup() {
       const audioRef = ref(null)
+      const songReady = ref(false)
+
       const store = useStore()
+      const { modeIcon, changeMode } = useMode()
+      const { getFavoriteIcon, toggleFavorite } = useFavorite()
+
       const fullScreen = computed(() => store.state.fullScreen)
       const currentSong = computed(() => store.getters.currentSong)
+      const playing = computed(() => store.state.playing)
+      const currentIndex = computed(() => store.state.currentIndex)
+      const playlist = computed(() => store.state.playlist)
+
+      const playIcon = computed(() => {
+        return playing.value ? 'icon-pause' : 'icon-play'
+      })
+
+      const disableCls = computed(() => {
+        return songReady.value ? '' : 'disable'
+      })
 
       /** 当前歌曲变更时候，设置 audio 的音乐资源 */
       watch(currentSong, (newSong) => {
         if (!newSong.id && !newSong.url) {
           return
         }
-        console.log(newSong.url)
+        /** 歌曲发生变化，我们需要修改歌曲缓冲 */
+        songReady.value = false
         const audioEle = audioRef.value
 
         audioEle.src = newSong.url
@@ -51,15 +90,118 @@
         audioEle.play()
       })
 
+      /** 根据store playing，设置 audio 的播放状态 */
+      watch(playing, (newPlaying) => {
+        if (!songReady.value) {
+          return
+        }
+        const audioEle = audioRef.value
+        newPlaying ? audioEle.play() : audioEle.pause()
+      })
+
       function goBack() {
         store.commit('setFullScreen', false)
+      }
+
+      function togglePlay() {
+        if (!songReady.value) {
+          return
+        }
+
+        store.commit('setPlayingState', !playing.value)
+      }
+
+      /** 处理在笔记本盖上，audio 会暂停播放，可是数据并未更改 */
+      function pause() {
+        store.commit('setPlayingState', false)
+      }
+
+      function prev() {
+        const list = playlist.value
+        if (!songReady.value || !list.length) {
+          return
+        }
+
+        /** 如果列表长度为1，那么设置循环播放 */
+        if (list.length === 1) {
+          return loop()
+        }
+        let index = currentIndex.value - 1
+        if (index === -1) {
+          index = list.length - 1
+        }
+
+        store.commit('setCurrentIndex', index)
+
+        if (!playing.value) {
+          store.commit('setPlayingState', true)
+        }
+      }
+
+      function next() {
+        const list = playlist.value
+        console.log(songReady.value)
+        if (!songReady.value || !list.length) {
+          return
+        }
+
+        /** 如果列表长度为1，那么设置循环播放 */
+        if (list.length === 1) {
+          return loop()
+        }
+
+        let index = currentIndex.value + 1
+        if (index === list.length) {
+          index = 0
+        }
+
+        store.commit('setCurrentIndex', index)
+
+        if (!playing.value) {
+          store.commit('setPlayingState', true)
+        }
+      }
+
+      function loop() {
+        const audioEle = audioRef.value
+        /** 设置当前时间为 0 */
+        audioEle.currentTime = 0
+        audioEle.play()
+      }
+
+      function ready() {
+        /** 会出现多次缓存，但是我们只需要在第一次播放的时候设置为 true 就行 */
+        if (songReady.value) {
+          return
+        }
+        songReady.value = true
+      }
+
+      /** 当歌曲出错的时候，我们还需要可以切歌，这里也要把标识 */
+      function error() {
+        songReady.value = true
       }
 
       return {
         audioRef,
         fullScreen,
         currentSong,
-        goBack
+        disableCls,
+        playIcon,
+        goBack,
+        togglePlay,
+        pause,
+        prev,
+        next,
+        ready,
+        error,
+
+        /** useMode */
+        modeIcon,
+        changeMode,
+        /** useFavorite */
+        getFavoriteIcon,
+        toggleFavorite,
       }
     }
   }
