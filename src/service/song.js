@@ -17,3 +17,27 @@ export function processSongs(songs) {
     })
   })
 }
+
+const lyricMap = {}
+
+/** 获取歌词 */
+export function getLyric(song) {
+  /** 是否之前缓存了 */
+  if (song.lyric) {
+    return Promise.resolve(song.lyric)
+  }
+
+  const mid = song.mid
+
+  /** 不同的页面可能存在相同的 mid，我们可以通过 map 缓存起来 */
+  const lyric = lyricMap[mid]
+  if (lyric) {
+    return Promise.resolve(lyric)
+  }
+
+  return get('/api/getLyric', { mid })
+    .then((result) => {
+      const lyric = result ? result.lyric : '[00:00:00]该歌曲暂时无法获取歌词'
+      return lyric
+    })
+}
