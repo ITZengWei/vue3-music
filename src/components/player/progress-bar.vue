@@ -51,8 +51,7 @@
     watch: {
 		  /** 也可以用 computed 实现，但是需要注意 computed在使用的时候this.$el.clientWidth可能拿不到值 */
       progress(newProgress) {
-        const barWidth = this.$el.clientWidth - progressBtnWidth
-        this.offset = barWidth * newProgress
+        this.setOffset(newProgress)
       }
     },
     created() {
@@ -92,6 +91,10 @@
         /** 更改后的进度 */
         const progress = offset / barWidth
         this.$emit('progress-changed', progress)
+      },
+      setOffset(progress) {
+        const barWidth = this.$el.clientWidth - progressBtnWidth
+        this.offset = barWidth * progress
       }
     },
 	}
