@@ -44,6 +44,7 @@
         <song-list
           :songs="songs"
           @select="selectItem"
+          :rank="rank"
         ></song-list>
       </div>
     </scroll>
@@ -51,7 +52,9 @@
 </template>
 
 <script>
-  import Scroll from '../base/scroll/scroll'
+  import { mapState } from 'vuex'
+  // import Scroll from '../base/scroll/scroll'
+  import Scroll from '@/components/wrap-scroll'
   import SongList from '../base/song-list/song-list'
   import { mapActions } from 'vuex'
 
@@ -69,7 +72,12 @@
         type: Array,
         default() {
           return []
-        }
+        },
+      },
+      // 显示排名
+      rank: {
+        type: Boolean,
+        default: false
       },
       title: String,
       pic: String,
@@ -84,6 +92,7 @@
       }
     },
     computed: {
+      ...mapState(['playlist']),
       bgImageStyle() {
         const scrollY = this.scrollY
         let zIndex = 0
@@ -138,8 +147,10 @@
         }
       },
       scrollStyle() {
+        const bottom = this.playlist.length ? '60px' : '0'
         return {
-          top: `${this.imageHeight}px`
+          top: `${this.imageHeight}px`,
+          bottom
         }
       },
       noResult() {

@@ -16,6 +16,9 @@
               >
               </i>
               <span class="text">{{modeText}}</span>
+              <span class="clear" @click="showConfirm">
+                <i class="icon-clear"></i>
+              </span>
             </h1>
           </div>
           <scroll
@@ -53,6 +56,8 @@
             <span>关闭</span>
           </div>
         </div>
+
+        <confirm ref="confirmRef" text="是否清空播放列表" @confirm="confirmClear" confirm-btn-text="清空"/>
       </div>
     </transition>
   </teleport>
@@ -60,6 +65,7 @@
 
 <script>
   import scroll from '@/components/base/scroll/scroll'
+  import confirm from '@/components/base/confirm/confirm'
   import { ref, computed, nextTick, watch } from 'vue'
   import { useStore } from 'vuex'
   import useMode from './use-mode'
@@ -67,12 +73,14 @@
 
 	export default {
     components: {
-      scroll
+      scroll,
+      confirm
     },
 		name: "playlist",
     setup() {
       const visible = ref(false)
       const scrollRef = ref(null)
+      const confirmRef = ref(null)
       const removing = ref(null)
       /** 列表 ref 作用找到当前滚动的元素 */
       const listRef = ref(null)
@@ -139,25 +147,40 @@
         removing.value = true
         store.dispatch('removeSong', song)
 
+        if (!playlist.value.length) {
+          hide()
+        }
+
         /** 删除动画是 300 ms */
         setTimeout(() => {
           removing.value = false
         }, 300)
       }
 
+      function showConfirm() {
+        confirmRef.value.show()
+      }
+
+      function confirmClear() {
+        store.dispatch('clearSongList')
+        hide()
+      }
+
       return {
         scrollRef,
+        confirmRef,
         listRef,
         visible,
         removing,
         playlist,
         sequenceList,
-
         hide,
         show,
         getCurrentIcon,
         selectItem,
         removeSong,
+        showConfirm,
+        confirmClear,
 
         /** useMode */
         modeIcon, modeText, changeMode,

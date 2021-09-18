@@ -637,8 +637,8 @@ function registerHotKeys(app) {
 // 注册搜索查询接口
 function registerSearch(app) {
   app.get('/api/search', (req, res) => {
-    const url = 'https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp'
-
+    // const url = 'https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp'
+    // const url = 'https://c.y.qq.com/soso/fcgi-bin/client_search_cp'
     const { query, page, showSinger } = req.query
 
     const data = {
@@ -663,6 +663,7 @@ function registerSearch(app) {
     }
 
     get(url, data).then((response) => {
+
       const data = response.data
       if (data.code === ERR_OK) {
         const songList = []

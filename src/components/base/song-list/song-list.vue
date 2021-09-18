@@ -6,6 +6,9 @@
       :key="song.id"
       @click="selectItem(song, index)"
     >
+      <div class="rank" v-if="rank">
+        <span :class="getRankCls(index)">{{ getRankText(index) }}</span>
+      </div>
       <div class="content">
         <h2 class="name">{{song.name}}</h2>
         <p class="desc">{{getDesc(song)}}</p>
@@ -23,6 +26,11 @@
         default() {
           return []
         }
+      },
+      // 显示排名
+      rank: {
+        type: Boolean,
+        default: false
       }
     },
     emits: ['select'],
@@ -32,7 +40,17 @@
       },
       selectItem(song, index) {
         this.$emit('select', { song, index })
-      }
+      },
+      getRankCls(index) {
+        if (index <= 2) {
+          return `icon icon${ index }`
+        }
+      },
+      getRankText(index) {
+        if (index > 2) {
+          return index + 1
+        }
+      },
     },
   }
 </script>
@@ -55,7 +73,7 @@
           width: 25px;
           height: 24px;
           background-size: 25px 24px;
-         /* &.icon0 {
+          &.icon0 {
             @include bg-image('first');
           }
           &.icon1 {
@@ -63,7 +81,7 @@
           }
           &.icon2 {
             @include bg-image('third');
-          }*/
+          }
         }
         .text {
           color: $color-theme;

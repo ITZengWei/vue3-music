@@ -5,67 +5,11 @@
 </template>
 
 <script>
-  import { getSingerDetail } from "../service/singer"
-  import { processSongs } from "../service/song"
-  import MusicList from '../components/music-list/music-list'
-  import storage  from 'good-storage'
+  import createDetailComponent from '@/assets/js/create-detail-component'
   import { SINGER_KEY } from "../assets/js/constant"
+  import { getSingerDetail } from "../service/singer"
 
-  export default {
-    name: 'singer-detail',
-    components: {
-      MusicList
-    },
-    props: {
-      singer: {
-        type: Object,
-      },
-    },
-    data() {
-      return {
-        songs: [],
-        loading: false
-      }
-    },
-    computed: {
-      computedSinger() {
-        let result = null
-        const propSinger = this.singer
-        if (propSinger) {
-          result = propSinger
-        } else {
-          const cachedSinger = storage.session.get(SINGER_KEY)
-
-          if (cachedSinger && cachedSinger.mid === this.$route.params.id) {
-            result = cachedSinger
-          }
-        }
-
-        return result
-      },
-      pic() {
-        const singer = this.computedSinger
-        return singer && singer.pic;
-      },
-      title() {
-        const singer = this.computedSinger
-        return singer && singer.name;
-      },
-    },
-    async created() {
-      const singer = this.computedSinger
-      /** 如果还没有拿到歌手详情，退回到一级路由 */
-      if (!singer) {
-        const path = this.$route.matched[0].path
-        this.$router.replace(path)
-        return
-      }
-      this.loading = true
-      const result = await getSingerDetail(singer)
-      this.songs = await processSongs(result.songs)
-      this.loading = false
-    }
-  }
+  export default createDetailComponent('singer-detail', SINGER_KEY, getSingerDetail)
 </script>
 
 <style lang="scss" scoped>

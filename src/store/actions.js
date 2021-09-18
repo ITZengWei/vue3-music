@@ -65,4 +65,15 @@ export function removeSong({ commit, state }, song) {
   commit('setSequenceList', sequenceList)
   commit('setPlaylist', playlist)
   commit('setCurrentIndex', currentIndex)
+  if (!playlist.length) {
+    commit('setPlayingState', false)
+  }
+}
+
+/** 删除歌曲 */
+export function clearSongList({ commit }) {
+  commit('setSequenceList', [])
+  commit('setPlaylist', [])
+  commit('setCurrentIndex', 0)
+  commit('setPlayingState', false)
 }

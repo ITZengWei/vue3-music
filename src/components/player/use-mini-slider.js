@@ -57,8 +57,8 @@ export default function useMiniSlider() {
     })
 
     /** 播放列表改变的时候重置 slide 列表 */
-    watch(playlist, () => {
-      if (sliderVal && sliderShow.value) {
+    watch(playlist, (newList) => {
+      if (sliderVal && sliderShow.value && newList.length) {
         sliderVal.refresh()
       }
     })
